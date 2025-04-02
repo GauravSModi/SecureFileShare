@@ -14,25 +14,25 @@ public class Main {
         System.out.println("Starting keystore!");
 
         // Connect to database
-        Database db = new Database();
+//        Database db = new Database();
 
+        try (
+                ServerSocket keyStoreSocket = new ServerSocket(PORT);
+        ) {
 
-//
-//        try (
-//                ServerSocket keyStoreSocket = new ServerSocket(PORT);
-//        ) {
-//
-//            while (cont) {
-//                // Accept an incoming connection
-//                Socket clientSocket = keyStoreSocket.accept();
-//                ClientHandler handler = new ClientHandler(keyStoreSocket, clientSocket);
-//                Thread t = new Thread(handler);
-//                t.start();
-//            }
-//
-//        } catch (IOException e) {
-//            System.err.println(e.getMessage());
-//        }
+            while (cont) {
+                // Accept an incoming connection
+                Socket clientSocket = keyStoreSocket.accept();
+                ClientHandler handler = new ClientHandler(keyStoreSocket, clientSocket);
+                Thread t = new Thread(handler);
+                t.start();
+            }
 
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+
+        // Close Database
+        Database.closeDatabaseInstance();
     }
 }

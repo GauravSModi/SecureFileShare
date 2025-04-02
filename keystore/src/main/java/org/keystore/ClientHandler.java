@@ -19,7 +19,12 @@ public class ClientHandler implements Runnable {
         String method = commandArgs[0];
 
         switch (method.toLowerCase()) {
-//            case ""
+            case "register":
+                if (commandArgs.length != 2) {
+                    return "Incorrect number of arguments provided. Could not register user.";
+                }
+                return registerNewUser();
+
             case "stop":
                 Main.cont = false;
                 serverSocket.close();
@@ -27,6 +32,12 @@ public class ClientHandler implements Runnable {
             default:
                 return "Error: Unknown Command";
         }
+    }
+
+    private String registerNewUser() {
+
+
+
     }
 
     @Override

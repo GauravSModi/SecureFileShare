@@ -1,5 +1,6 @@
 package org.keystore;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,21 +13,26 @@ public class Main {
 
         System.out.println("Starting keystore!");
 
-        try (
-                ServerSocket keyStoreSocket = new ServerSocket(PORT);
-        ) {
+        // Connect to database
+        Database db = new Database();
 
-            while (cont) {
-                // Accept an incoming connection
-                Socket clientSocket = keyStoreSocket.accept();
-                ClientHandler handler = new ClientHandler(keyStoreSocket, clientSocket);
-                Thread t = new Thread(handler);
-                t.start();
-            }
 
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
+//
+//        try (
+//                ServerSocket keyStoreSocket = new ServerSocket(PORT);
+//        ) {
+//
+//            while (cont) {
+//                // Accept an incoming connection
+//                Socket clientSocket = keyStoreSocket.accept();
+//                ClientHandler handler = new ClientHandler(keyStoreSocket, clientSocket);
+//                Thread t = new Thread(handler);
+//                t.start();
+//            }
+//
+//        } catch (IOException e) {
+//            System.err.println(e.getMessage());
+//        }
 
     }
 }

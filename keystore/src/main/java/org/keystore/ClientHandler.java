@@ -4,6 +4,7 @@ import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 
 public class ClientHandler implements Runnable {
 
@@ -20,9 +21,14 @@ public class ClientHandler implements Runnable {
         String method = commandArgs[0];
 
         switch (method.toLowerCase()) {
+            case "checkuserexists":
+                if (commandArgs.length != 2) {
+                    return "Error: Incorrect number of arguments provided. Could not register user.\n";
+                }
+                return checkUserExists(commandArgs[1]);
             case "register":
                 if (commandArgs.length != 2) {
-                    return "Incorrect number of arguments provided. Could not register user.";
+                    return "Error: Incorrect number of arguments provided. Could not register user.\n";
                 }
                 return registerNewUser();
 
@@ -32,6 +38,19 @@ public class ClientHandler implements Runnable {
                 return "Keystore Server exiting\n";
             default:
                 return "Error: Unknown Command";
+        }
+    }
+
+    private String checkUserExists(String userId) {
+        try{
+            if (Database.getInstance().checkUserExists(userId)){
+                return "user exists\n";
+            } else {
+                return "user does not exist\n";
+            }
+        } catch (SQLException e) {
+            System.err.println("Error occurred while checking if user exists: " + e.getMessage());
+            return "error\n";
         }
     }
 

@@ -1,10 +1,7 @@
 package org.keystore;
 
 import javax.xml.crypto.Data;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 
     /* Tables:
@@ -42,11 +39,9 @@ import java.sql.SQLException;
     */
 
 
-
 public class Database {
 
     private static Database instance;
-
     private static Connection conn;
 
 //    private String url = "jdbc:sqlite://localhost:PORT/mydatabase";
@@ -100,7 +95,10 @@ public class Database {
             statement.setString(1, userId);
             statement.setString(2, publicKey);
 
-            statement.execute();
+
+            boolean res = statement.execute();
+
+            System.out.println("Result of sql statement: " + res);
 
             return "User successfully registered.";
         } catch (SQLException e) {
@@ -109,6 +107,23 @@ public class Database {
         }
     }
 
+    public boolean checkUserExists(String userId) throws SQLException {
+        String sql = "SELECT 1 FROM users WHERE user_id = ?";
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+            statement.setString(1, userId);
+
+            statement.executeQuery();
+
+
+            try (ResultSet res = statement.executeQuery()) {
+                System.out.println("Result of sql statement: " + res);
+                return res.next();
+            }
+        }
+    }
 
 
     public static void closeDatabaseInstance() {

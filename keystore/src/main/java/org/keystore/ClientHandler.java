@@ -1,5 +1,6 @@
 package org.keystore;
 
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -35,9 +36,14 @@ public class ClientHandler implements Runnable {
     }
 
     private String registerNewUser() {
+        // RSA Keys
 
 
+        // Try the database
 
+        // return result
+//        return Database.getInstance().registerUser(userId, publicKey);
+        return "";
     }
 
     @Override

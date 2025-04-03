@@ -14,7 +14,9 @@ public class Main {
         System.out.println("Starting keystore!");
 
         // Connect to database
-//        Database db = new Database();
+        if (Database.getInstance() == null) {
+            System.exit(2);
+        }
 
         try (
                 ServerSocket keyStoreSocket = new ServerSocket(PORT);

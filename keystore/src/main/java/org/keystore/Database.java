@@ -83,6 +83,7 @@ public class Database {
             }
         } catch (SQLException e) {
             System.err.println("Couldn't get db instance: " + e.getMessage());
+            return null;
         }
         return instance;
     }
@@ -140,8 +141,6 @@ public class Database {
             try (
                     ResultSet res = statement.executeQuery();
             ) {
-                System.out.println("Result of getting user public key: " + res.getString(1));
-                System.out.println("Result of getting user public key: " + res.getString("public_key"));
                 return res.getString("public_key");
             }
         }

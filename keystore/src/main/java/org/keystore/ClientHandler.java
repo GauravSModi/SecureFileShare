@@ -91,9 +91,6 @@ public class ClientHandler implements Runnable {
         try {
             String publicKey = Database.getInstance().getUserPublicKey(userId);
 
-            System.out.println(publicKey);
-
-
             flattenedPublicKey = publicKey.replace("\n", "[newline]");
 
 //            byte[] temp = Base64.getDecoder().decode(res);

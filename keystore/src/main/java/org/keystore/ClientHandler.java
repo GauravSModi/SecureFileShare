@@ -3,7 +3,10 @@ package org.keystore;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Base64;
 
 public class ClientHandler implements Runnable {
 
@@ -25,6 +28,11 @@ public class ClientHandler implements Runnable {
                     return "Incorrect number of arguments provided. Could not register user.\n";
                 }
                 return checkUserExists(commandArgs[1]);
+            case "getuserpublickey":
+                if (commandArgs.length != 2) {
+                    return "Incorrect number of arguments provided. Could not register user.\n";
+                }
+                return getUserPublicKey(commandArgs);
             case "register":
                 if (commandArgs.length <= 2) {
                     return "Incorrect number of arguments provided. Could not register user.\n";
@@ -42,7 +50,7 @@ public class ClientHandler implements Runnable {
 
     private String checkUserExists(String userId) {
         try{
-            if (Database.getInstance().checkUserExists(userId)){
+            if (Database.getInstance().checkUserExists(userId.toLowerCase())){
                 return "user exists\n";
             } else {
                 return "user does not exist\n";
@@ -57,15 +65,46 @@ public class ClientHandler implements Runnable {
         String[] commandArgs = command.split(" ", 3);
 
         // Get user public key from client
-        String userId = commandArgs[1];
-        String publicKey = commandArgs[2];
+        String userId = commandArgs[1].toLowerCase();
+        String flattenedPublicKey = commandArgs[2];
 
-        publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
-                             .replace("-----END PUBLIC KEY-----", "")
-                             .replace("\\s", "");
+        String publicKey = flattenedPublicKey.replace("[newline]", "\n");
+
+//        publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
+//                             .replace("-----END PUBLIC KEY-----", "")
+//                             .replace("\\s", "")
+//                             .replace("[newline]", "");
 
         // Try the database
-        return Database.getInstance().registerUser(userId, publicKey);
+        try {
+            return Database.getInstance().registerUser(userId, publicKey);
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+            return "Write to database failed. User not registered.";
+        }
+    }
+
+    private String getUserPublicKey(String[] commandArgs) {
+        String userId = commandArgs[1].toLowerCase();
+        String flattenedPublicKey = null;
+
+        try {
+            String publicKey = Database.getInstance().getUserPublicKey(userId);
+
+            System.out.println(publicKey);
+
+
+            flattenedPublicKey = publicKey.replace("\n", "[newline]");
+
+//            byte[] temp = Base64.getDecoder().decode(res);
+//            String publicKey = "-----BEGIN PUBLIC KEY-----\n"
+//                    + Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded())
+//                    + "\n-----END PUBLIC KEY-----\n";
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return flattenedPublicKey;
     }
 
     @Override

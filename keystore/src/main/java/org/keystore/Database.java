@@ -2,9 +2,18 @@ package org.keystore;
 
 import javax.xml.crypto.Data;
 import java.sql.*;
+import java.util.UUID;
 
 
     /* Tables:
+
+        Keystore tables:
+            users
+            file_access
+
+        datastore tables:
+            files
+
 
             CREATE TABLE users (
                 user_id TEXT PRIMARY KEY,
@@ -12,25 +21,21 @@ import java.sql.*;
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
-
             CREATE TABLE files (
-                file_id TEXT PRIMARY KEY,
+                file_id UUID PRIMARY KEY,
                 file_name TEXT NOT NULL,
-                encrypted_fek BLOB NOT NULL,
-                owner_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (owner_id) REFERENCES users(user_id)
+                UNIQUE (user_id, file_name)
             );
 
-
             CREATE TABLE file_access (
-                file_id TEXT NOT NULL,
+                file_id UUID NOT NULL,
                 user_id TEXT NOT NULL,
                 encrypted_fek_for_user BLOB NOT NULL,
                 granted_by TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (file_id, user_id),
-                FOREIGN KEY (file_id) REFERENCES files(file_id),
                 FOREIGN KEY (user_id) REFERENCES users(user_id),
                 FOREIGN KEY (granted_by) REFERENCES users(user_id)
             );
@@ -68,6 +73,7 @@ public class Database {
         }
     }
 
+
     public static Database getInstance() {
         try {
             if (instance == null) {
@@ -86,13 +92,14 @@ public class Database {
     }
 
 
-    public String registerUser(String userId, String publicKey) {
+    public String registerUser(String userId, String publicKey) throws SQLException {
         String sql = "INSERT INTO users (user_id, public_key) VALUES (?, ?)";
 
-        try {
-            PreparedStatement statement = conn.prepareStatement(sql);
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
 
-            statement.setString(1, userId);
+            statement.setString(1, userId.toLowerCase());
             statement.setString(2, publicKey);
 
             int rowsAffected = statement.executeUpdate();
@@ -101,9 +108,6 @@ public class Database {
                 return "Success";
             }
 
-            return "Write to database failed. User not registered.";
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
             return "Write to database failed. User not registered.";
         }
     }
@@ -114,13 +118,31 @@ public class Database {
         try (
                 PreparedStatement statement = conn.prepareStatement(sql);
         ) {
-            statement.setString(1, userId);
+            statement.setString(1, userId.toLowerCase());
 
-            statement.executeQuery();
-
-            try (ResultSet res = statement.executeQuery()) {
+            try (
+                    ResultSet res = statement.executeQuery()
+            ) {
                 System.out.println("Result of sql statement: " + res);
                 return res.next();
+            }
+        }
+    }
+
+    public String getUserPublicKey(String userId) throws SQLException {
+        String sql = "SELECT public_key FROM users WHERE user_id = ?";
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+            statement.setString(1, userId.toLowerCase());
+
+            try (
+                    ResultSet res = statement.executeQuery();
+            ) {
+                System.out.println("Result of getting user public key: " + res.getString(1));
+                System.out.println("Result of getting user public key: " + res.getString("public_key"));
+                return res.getString("public_key");
             }
         }
     }

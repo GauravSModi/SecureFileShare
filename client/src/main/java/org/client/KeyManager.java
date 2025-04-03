@@ -14,9 +14,10 @@ package org.client;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class KeyManager {
@@ -24,14 +25,14 @@ public class KeyManager {
     private static KeyManager instance;
 
     private String userId;
-    private byte[] privateKey;
+    private String privateKey;
 
     private KeyManager() {
         this.userId = null;
         this.privateKey = null;
     }
 
-    private KeyManager(String userId, byte[] privateKey) {
+    private KeyManager(String userId, String privateKey) {
         this.userId = userId;
         this.privateKey = privateKey;
     }
@@ -51,12 +52,24 @@ public class KeyManager {
         return this.userId != null && this.privateKey != null;
     }
 
+    public void setUserAndPrivateKey(String userId, String privateKey){
+        this.userId = userId;
+        this.privateKey = privateKey;
+    }
+
+    // Todo: Implement
+    public boolean loginUser(String userId) {
+
+        return false;
+    }
+
     public void logoutUser() {
         this.userId = null;
         this.privateKey = null;
     }
 
-    public byte[] createRSAKeyPair(String userId) throws NoSuchAlgorithmException, IOException {
+
+    public String[] createRSAKeyPair(String userId) throws NoSuchAlgorithmException, IOException {
         // Make sure there's not already a privatekey
 
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -76,11 +89,24 @@ public class KeyManager {
         Files.write(Paths.get(userId + "_private_key.pem"), privateKey.getBytes());
 //        Files.write(Paths.get(userId + "_public_key.pem"), publicKey.getBytes());d
 
-        this.userId = userId;
-        this.privateKey = privateKey.getBytes();
-
-        return publicKey.getBytes();
+        return new String[] {publicKey, privateKey};
     }
 
+    public static PublicKey parsePublicKey(String publicKeyPem) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String publicKey = publicKeyPem
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "")
+                .replaceAll("\\s", "");
+        byte[] encodedKey = Base64.getDecoder().decode(publicKey);
+        return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encodedKey));
+    }
 
+    public static PrivateKey parsePrivateKey(String privateKeyPem) throws GeneralSecurityException {
+        String privateKey = privateKeyPem
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s", "");
+        byte[] encodedKey = Base64.getDecoder().decode(privateKey);
+        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
+    }
 }

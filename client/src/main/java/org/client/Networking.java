@@ -12,14 +12,22 @@ public class Networking {
         return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("user exists");
     }
 
-    public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, byte[] publicKey) throws Exception {
+    public static String getUserPublicKey(String userId) throws IOException {
+        String flattenedPublicKey = sendMessageToKeystore("getUserPublicKey " + userId);
+        String publicKey = flattenedPublicKey.replace("[newline]", "\n");
+        return publicKey;
+    }
 
-            String res = sendMessageToKeystore("Register " + userId + " " + Arrays.toString(publicKey));
-            if (res != null && res.equalsIgnoreCase("success")) {
-                return true;
-            } else {
-                throw new Exception(res);
-            }
+    public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, String publicKey) throws Exception {
+
+        String flattenedPublicKey = publicKey.replace("\n", "[newline]");
+
+        String res = sendMessageToKeystore("Register " + userId + " " + flattenedPublicKey);
+        if (res != null && res.equalsIgnoreCase("success")) {
+            return true;
+        } else {
+            throw new Exception(res);
+        }
     }
 
     private static String sendMessageToKeystore(String message) throws IOException {

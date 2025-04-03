@@ -24,7 +24,10 @@ public class Main {
                 System.out.print("Please enter command: ");
                 String command = scanner.nextLine();
 
-                CommandHandler.handleCommand(command);
+                // Make sure command isn't empty
+                if (command != null && !command.replaceAll("\\s", "").isEmpty()){
+                    CommandHandler.handleCommand(command);
+                }
 
             }
         } catch (IOException e) {

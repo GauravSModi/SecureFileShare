@@ -52,35 +52,40 @@ public class CommandHandler {
 
         // Have to check if the user already exists in keystore db
         try {
-            Networking.checkUserExists(userId);
+            if (Networking.checkUserExists(userId)) {
+                System.out.println("Username already taken. Please choose a different username.");
+                return;
+            }
         } catch (IOException e) {
             System.err.println("Error checking if user already exists while registering user: " + e.getMessage());
             return;
         }
 
+        byte[] publicKey = null;
+
         // If unique, create RSA keypair
         try {
-            byte[] publicKey = KeyManager.getInstance().createRSAKeyPair(userId);
+            publicKey = KeyManager.getInstance().createRSAKeyPair(userId);
         } catch (NoSuchAlgorithmException | IOException e) {
             System.err.println("Error creating RSA key pair while registering user: " + e.getMessage());
             return;
         }
 
         // Send keystore server the public_key.pem file
-        // TODO: but if everything fails at the last second, should delete the rsa keypair that was created?
-
-//        Networking.
-
-//        try (
-//                FileInputStream in = new FileInputStream("gaurav_public_key.pem");
-//        ) {
-//            System.out.println(Arrays.toString(in.readAllBytes()));
-//        } catch (FileNotFoundException e) {
-//            throw new RuntimeException(e);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-
+        if (publicKey != null){
+            try {
+                if (Networking.sendPublicKeyAndReceiveConfirmationOfUserCreation(userId, publicKey)) {
+                    System.out.println("Registered successfully! Please keep your private key safe.");
+                } else {
+                    System.out.println("Uh oh. Something went wrong. Please try again later.");
+                    // TODO: but if everything fails at the last second, should delete the rsa keypair that was created?
+                    return;
+                }
+            } catch (Exception e) {
+                System.err.println("Error registering user: " + e.getMessage());
+                return;
+            }
+        }
     }
 
     private static void logoutUser() {

@@ -2,6 +2,7 @@ package org.client;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Networking {
     private static int KEYSTORE_PORT = 13131;
@@ -11,9 +12,14 @@ public class Networking {
         return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("exists");
     }
 
-    public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, byte[] publicKey) {
+    public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, byte[] publicKey) throws Exception {
 
-        return true;
+            String res = sendMessageToKeystore("Register " + userId + " " + Arrays.toString(publicKey));
+            if (res.equalsIgnoreCase("success")) {
+                return true;
+            } else {
+                throw new Exception(res);
+            }
     }
 
     private static String sendMessageToKeystore(String message) throws IOException {

@@ -1,6 +1,5 @@
 package org.keystore;
 
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -23,21 +22,22 @@ public class ClientHandler implements Runnable {
         switch (method.toLowerCase()) {
             case "checkuserexists":
                 if (commandArgs.length != 2) {
-                    return "Error: Incorrect number of arguments provided. Could not register user.\n";
+                    return "Incorrect number of arguments provided. Could not register user.\n";
                 }
                 return checkUserExists(commandArgs[1]);
             case "register":
+                System.out.println(commandArgs.length);
                 if (commandArgs.length != 2) {
-                    return "Error: Incorrect number of arguments provided. Could not register user.\n";
+                    return "Incorrect number of arguments provided. Could not register user.\n";
                 }
-                return registerNewUser();
+                return registerNewUser(commandArgs);
 
             case "stop":
                 Main.cont = false;
                 serverSocket.close();
                 return "Keystore Server exiting\n";
             default:
-                return "Error: Unknown Command";
+                return "Unknown Command";
         }
     }
 
@@ -54,8 +54,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String registerNewUser() {
+    private String registerNewUser(String[] commandArgs) {
         // Get user public key from client
+        for (int i = 0; i < commandArgs.length; i ++) {
+
+//            System.err.print(commandArgs[i] + " ");
+        }
 
 
 

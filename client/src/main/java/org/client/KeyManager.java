@@ -3,7 +3,6 @@ package org.client;
 /*
  *  Singleton KeyPairManager class
  *
- *  Where I left off:
  *   - Create RSA key pair
  *   - Store the user one
  *   - Transmit the keystore one to the server
@@ -13,13 +12,11 @@ package org.client;
 
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Base64;
 
 public class KeyManager {

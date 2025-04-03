@@ -64,12 +64,8 @@ public class ClientHandler implements Runnable {
                              .replace("-----END PUBLIC KEY-----", "")
                              .replace("\\s", "");
 
-
         // Try the database
-
-        // return result
         return Database.getInstance().registerUser(userId, publicKey);
-//        return "Success";
     }
 
     @Override

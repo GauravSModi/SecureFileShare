@@ -43,6 +43,10 @@ public class KeyManager {
         return instance;
     }
 
+    public String getUser() {
+        return userId;
+    }
+
     public boolean checkUserLoggedIn() {
         return this.userId != null && this.privateKey != null;
     }
@@ -70,7 +74,10 @@ public class KeyManager {
                          + "\n-----END PRIVATE KEY-----\n";
 
         Files.write(Paths.get(userId + "_private_key.pem"), privateKey.getBytes());
-//        Files.write(Paths.get(userId + "_public_key.pem"), publicKey.getBytes());
+//        Files.write(Paths.get(userId + "_public_key.pem"), publicKey.getBytes());d
+
+        this.userId = userId;
+        this.privateKey = privateKey.getBytes();
 
         return publicKey.getBytes();
     }

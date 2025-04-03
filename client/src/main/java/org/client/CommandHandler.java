@@ -17,6 +17,13 @@ public class CommandHandler {
         }
 
         switch (commandArgs[0].toLowerCase()) {
+            case "user":
+                if (KeyManager.getInstance().checkUserLoggedIn()) {
+                    System.out.println(KeyManager.getInstance().getUser() + " logged in.");
+                } else {
+                    System.out.println("There is no user logged in currently.");
+                }
+                return;
             case "register":
                 registerUser(commandArgs);
                 return;

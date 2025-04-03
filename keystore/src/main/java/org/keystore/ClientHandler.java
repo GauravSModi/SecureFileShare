@@ -26,11 +26,10 @@ public class ClientHandler implements Runnable {
                 }
                 return checkUserExists(commandArgs[1]);
             case "register":
-                System.out.println(commandArgs.length);
-                if (commandArgs.length != 2) {
+                if (commandArgs.length <= 2) {
                     return "Incorrect number of arguments provided. Could not register user.\n";
                 }
-                return registerNewUser(commandArgs);
+                return registerNewUser(command);
 
             case "stop":
                 Main.cont = false;
@@ -54,20 +53,23 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String registerNewUser(String[] commandArgs) {
+    private String registerNewUser(String command) {
+        String[] commandArgs = command.split(" ", 3);
+
         // Get user public key from client
-        for (int i = 0; i < commandArgs.length; i ++) {
+        String userId = commandArgs[1];
+        String publicKey = commandArgs[2];
 
-//            System.err.print(commandArgs[i] + " ");
-        }
-
+        publicKey = publicKey.replace("-----BEGIN PUBLIC KEY-----", "")
+                             .replace("-----END PUBLIC KEY-----", "")
+                             .replace("\\s", "");
 
 
         // Try the database
 
         // return result
-//        return Database.getInstance().registerUser(userId, publicKey);
-        return "";
+        return Database.getInstance().registerUser(userId, publicKey);
+//        return "Success";
     }
 
     @Override

@@ -95,15 +95,16 @@ public class Database {
             statement.setString(1, userId);
             statement.setString(2, publicKey);
 
+            int rowsAffected = statement.executeUpdate();
 
-            boolean res = statement.execute();
+            if (rowsAffected == 1) {
+                return "Success";
+            }
 
-            System.out.println("Result of sql statement: " + res);
-
-            return "User successfully registered.";
+            return "Write to database failed. User not registered.";
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-            return "Write failed. User not registered.";
+            return "Write to database failed. User not registered.";
         }
     }
 
@@ -116,7 +117,6 @@ public class Database {
             statement.setString(1, userId);
 
             statement.executeQuery();
-
 
             try (ResultSet res = statement.executeQuery()) {
                 System.out.println("Result of sql statement: " + res);

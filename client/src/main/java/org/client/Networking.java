@@ -9,13 +9,13 @@ public class Networking {
     private static int DATASTORE_PORT = 31313;
 
     public static boolean checkUserExists(String userId) throws IOException {
-        return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("exists");
+        return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("user exists");
     }
 
     public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, byte[] publicKey) throws Exception {
 
             String res = sendMessageToKeystore("Register " + userId + " " + Arrays.toString(publicKey));
-            if (res.equalsIgnoreCase("success")) {
+            if (res != null && res.equalsIgnoreCase("success")) {
                 return true;
             } else {
                 throw new Exception(res);

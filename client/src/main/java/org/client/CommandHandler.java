@@ -1,7 +1,10 @@
 package org.client;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class CommandHandler {
 
@@ -57,13 +60,26 @@ public class CommandHandler {
 
         // If unique, create RSA keypair
         try {
-            KeyManager.getInstance().createRSAKeyPair(userId);
+            byte[] publicKey = KeyManager.getInstance().createRSAKeyPair(userId);
         } catch (NoSuchAlgorithmException | IOException e) {
             System.err.println("Error creating RSA key pair while registering user: " + e.getMessage());
             return;
         }
 
         // Send keystore server the public_key.pem file
+        // TODO: but if everything fails at the last second, should delete the rsa keypair that was created?
+
+//        Networking.
+
+//        try (
+//                FileInputStream in = new FileInputStream("gaurav_public_key.pem");
+//        ) {
+//            System.out.println(Arrays.toString(in.readAllBytes()));
+//        } catch (FileNotFoundException e) {
+//            throw new RuntimeException(e);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 

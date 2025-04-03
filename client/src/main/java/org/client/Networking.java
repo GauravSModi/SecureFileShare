@@ -11,6 +11,11 @@ public class Networking {
         return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("exists");
     }
 
+    public static boolean sendPublicKeyAndReceiveConfirmationOfUserCreation(String userId, byte[] publicKey) {
+
+        return true;
+    }
+
     private static String sendMessageToKeystore(String message) throws IOException {
 
         try (

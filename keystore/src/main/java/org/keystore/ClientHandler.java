@@ -55,7 +55,8 @@ public class ClientHandler implements Runnable {
     }
 
     private String registerNewUser() {
-        // RSA Keys
+        // Get user public key from client
+
 
 
         // Try the database

@@ -13,12 +13,14 @@ package org.client;
 
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Base64;
 
 public class KeyManager {
 
@@ -53,7 +55,7 @@ public class KeyManager {
         this.privateKey = null;
     }
 
-    public void createRSAKeyPair(String userId) throws NoSuchAlgorithmException, IOException {
+    public byte[] createRSAKeyPair(String userId) throws NoSuchAlgorithmException, IOException {
         // Make sure there's not already a privatekey
 
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -61,13 +63,19 @@ public class KeyManager {
         KeyPair keyPair = keyGen.generateKeyPair();
 
         // Save keys to files
-        Files.write(Paths.get(userId + "_private_key.pem"), keyPair.getPrivate().getEncoded());
-        Files.write(Paths.get(userId + "_public_key.pem"), keyPair.getPublic().getEncoded());
 
-        privateKey = keyPair.getPrivate().getEncoded();
+        String publicKey = "-----BEGIN PUBLIC KEY-----\n"
+                         + Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded())
+                         + "\n-----END PUBLIC KEY-----\n";
 
-        // TODO: Remove this
-        System.out.println(Arrays.toString(privateKey));
+        String privateKey = "-----BEGIN PRIVATE KEY-----\n"
+                         + Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded())
+                         + "\n-----END PRIVATE KEY-----\n";
+
+        Files.write(Paths.get(userId + "_private_key.pem"), privateKey.getBytes());
+//        Files.write(Paths.get(userId + "_public_key.pem"), publicKey.getBytes());
+
+        return publicKey.getBytes();
     }
 
 

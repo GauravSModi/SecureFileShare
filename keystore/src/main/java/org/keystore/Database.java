@@ -146,9 +146,8 @@ public class Database {
     }
 
 
-    public boolean registerFile(UUID fileId, String fileName, String userId, SecretKey fek, String grantedBy) throws SQLException {
+    public void registerFile(UUID fileId, String fileName, String userId, byte[] fek, String grantedBy) throws SQLException {
         String sql = "INSERT INTO file_access (file_id, file_name, user_id, encrypted_fek_for_user, granted_by) VALUES (?, ?, ?, ?, ?)";
-        byte[] fekBytes = fek.getEncoded();
 
         try (
                 PreparedStatement statement = conn.prepareStatement(sql);
@@ -157,13 +156,10 @@ public class Database {
             statement.setString(1, fileId.toString());
             statement.setString(2, fileName);
             statement.setString(3, userId.toLowerCase());
-//            statement.setBlob(4, fekBytes);
-            statement.setBytes(4, fekBytes);
+            statement.setBytes(4, fek);
             statement.setString(5, grantedBy.toLowerCase());
 
             int rowsAffected = statement.executeUpdate();
-
-            return rowsAffected == 1; // True if succeeded
         }
     }
 
@@ -175,7 +171,7 @@ public class Database {
 //            encrypted_fek_for_user BLOB NOT NULL,
 //            granted_by TEXT NOT NULL,
 //            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//            PRIMARY KEY (file_id, user_id),
+//            PRIMARY KEY (file_name, user_id),
 //            FOREIGN KEY (user_id) REFERENCES users(user_id),
 //            FOREIGN KEY (granted_by) REFERENCES users(user_id)
 //            );

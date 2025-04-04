@@ -45,7 +45,11 @@ public class KeyManager {
     }
 
     public String getUser() {
-        return userId;
+        return this.userId;
+    }
+
+    public String getPrivateKey() {
+        return this.privateKey;
     }
 
     public boolean checkUserLoggedIn() {

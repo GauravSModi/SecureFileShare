@@ -95,17 +95,19 @@ public class ClientHandler implements Runnable {
 
         // Register the file into the db
         try {
-            if (Database.getInstance().registerFile(fileId, fileName, userId, fek, userId)) {
-                System.out.println("DB Success");
-            }
+            Database.getInstance().registerFile(fileId, fileName, userId, encryptedFek, userId);
         } catch (SQLException e) {
-            System.err.println("Database error: " + e.getMessage());
-            return "Error registering the file into keystore.";
+            if (e.getErrorCode() == 19) {
+                System.err.println("Database error: File already exists");
+                return "Error File already exists.";
+            } else {
+                System.err.println("Database error: " + e.getMessage());
+                return "Error registering the file into keystore.";
+            }
         }
 
         // Return the FEK for the client to encrypt file
-
-        return "";
+        return Base64.getEncoder().encodeToString(encryptedFek);
     }
 
     private String checkUserExists(String userId) {

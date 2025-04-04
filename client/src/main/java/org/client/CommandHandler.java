@@ -1,14 +1,17 @@
 package org.client;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,19 +81,53 @@ public class CommandHandler {
 
         // Create UUID
         UUID fileId = EncryptionUtil.generateUUID();
+        SecretKey fek = null;
+        String fekString = null;
 
         // Send keystore a request to generate encryption keys, and store the file name/uuid
         try {
-            String fek = Networking.generateFileEncryptionKey(fileId, fileName, userId);
-        } catch (IOException e) {
-            System.out.println("Error with keystore while generating fek: " + e.getMessage());
+            fekString = Networking.generateFileEncryptionKey(fileId, fileName, userId);
+            if (fekString.toLowerCase().contains("error")){
+                throw new Exception(fekString);
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             return;
         }
 
-        // Encrypt the file using the given keys
+        // Decrypt the received fek and cast to SecretKey
+        try {
+            fek = EncryptionUtil.decryptFEK(
+                    Base64.getDecoder().decode(fekString),
+                    KeyManager.parsePrivateKey(KeyManager.getInstance().getPrivateKey())
+            );
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return;
+        }
 
+        // Get file content and create new file name
+        byte[] content = null;
+        String encryptedFileName = null;
+        try {
+            content = Files.readAllBytes(Paths.get(fileName));
+            encryptedFileName = fileName.replaceAll("[.]", "_") + ".enc";
+        } catch (IOException e) {
+            System.out.println("Something went wrong while prepping file for encryption: " + e.getMessage());
+            return;
+        }
+
+        // Encrypt the content using the given key
+        try {
+            EncryptionUtil.encryptFile(content, fek, encryptedFileName);
+        } catch (Exception e) {
+            System.out.println("Something went wrong while encrypting file content: " + e.getMessage());
+            return;
+        }
 
         // Send the encrypted file to datastore
+
     }
 
     private static void checkUserLoggedIn() {

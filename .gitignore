@@ -5,6 +5,7 @@ target/
 
 *.pem
 *.db
+*.enc
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

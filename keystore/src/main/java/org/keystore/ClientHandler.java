@@ -1,12 +1,17 @@
 package org.keystore;
 
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 
 public class ClientHandler implements Runnable {
 
@@ -23,14 +28,20 @@ public class ClientHandler implements Runnable {
         String method = commandArgs[0];
 
         switch (method.toLowerCase()) {
+            case "generatefek":
+                if (commandArgs.length != 4) {
+                    return "Incorrect number of arguments provided. Could not generate FEK.\n";
+                }
+                return generateFek(commandArgs);
+
             case "checkuserexists":
                 if (commandArgs.length != 2) {
-                    return "Incorrect number of arguments provided. Could not register user.\n";
+                    return "Incorrect number of arguments provided. Could not check if user exists.\n";
                 }
                 return checkUserExists(commandArgs[1]);
             case "getuserpublickey":
                 if (commandArgs.length != 2) {
-                    return "Incorrect number of arguments provided. Could not register user.\n";
+                    return "Incorrect number of arguments provided. Could not get user's public key.\n";
                 }
                 return getUserPublicKey(commandArgs);
             case "register":
@@ -48,9 +59,58 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private String generateFek(String[] commandArgs) {
+
+        UUID fileId = UUID.fromString(commandArgs[1]);
+        String fileName = commandArgs[2];
+        String userId = commandArgs[3];
+
+        // Generate an FEK
+        SecretKey fek = null;
+        try {
+            fek = KeyManager.generateAESKey();
+        } catch (NoSuchAlgorithmException e) {
+            return e.getMessage();
+        }
+
+        // Encrypt the fek with the user's public key
+        byte[] encryptedFek = null;
+        PublicKey userPublicKey = null;
+
+        if (Database.getInstance() == null) {
+            return "Error with keystore database.";
+        }
+
+        try {
+            userPublicKey = KeyManager.parsePublicKey(Database.getInstance().getUserPublicKey(userId));
+        } catch (Exception e) {
+            return "Error getting user public key.";
+        }
+
+        try {
+            encryptedFek = KeyManager.encryptFEK(fek, userPublicKey);
+        } catch (Exception e) {
+            return "Error encrypting FEK.";
+        }
+
+        // Register the file into the db
+        try {
+            if (Database.getInstance().registerFile(fileId, fileName, userId, fek, userId)) {
+                System.out.println("DB Success");
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error: " + e.getMessage());
+            return "Error registering the file into keystore.";
+        }
+
+        // Return the FEK for the client to encrypt file
+
+        return "";
+    }
+
     private String checkUserExists(String userId) {
-        try{
-            if (Database.getInstance().checkUserExists(userId.toLowerCase())){
+        try {
+            if (Database.getInstance().checkUserExists(userId.toLowerCase())) {
                 return "user exists\n";
             } else {
                 return "user does not exist\n";

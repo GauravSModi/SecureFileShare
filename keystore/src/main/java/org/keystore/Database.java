@@ -1,5 +1,6 @@
 package org.keystore;
 
+import javax.crypto.SecretKey;
 import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.UUID;
@@ -22,7 +23,7 @@ import java.util.UUID;
             );
 
             CREATE TABLE files (
-                file_id UUID PRIMARY KEY,
+                file_id STRING PRIMARY KEY,
                 file_name TEXT NOT NULL,
                 user_id TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -30,7 +31,8 @@ import java.util.UUID;
             );
 
             CREATE TABLE file_access (
-                file_id UUID NOT NULL,
+                file_id STRING NOT NULL,
+                file_name TEXT NOT NULL,
                 user_id TEXT NOT NULL,
                 encrypted_fek_for_user BLOB NOT NULL,
                 granted_by TEXT NOT NULL,
@@ -39,7 +41,6 @@ import java.util.UUID;
                 FOREIGN KEY (user_id) REFERENCES users(user_id),
                 FOREIGN KEY (granted_by) REFERENCES users(user_id)
             );
-
 
     */
 
@@ -64,15 +65,14 @@ public class Database {
             conn = DriverManager.getConnection(dbURL);
 
             if (conn != null) {
-                System.out.println("Connected to database");
+                System.out.println("Connected to database.");
             }
         } catch (ClassNotFoundException e) {
-            System.out.println("SQLite JDBC driver not found");
+            System.out.println("SQLite JDBC driver not found.");
         } catch (SQLException e) {
-            System.out.println("Error connecting to the database");
+            System.out.println("Error connecting to the database.");
         }
     }
-
 
     public static Database getInstance() {
         try {
@@ -91,7 +91,6 @@ public class Database {
     public Connection getConnection() {
         return conn;
     }
-
 
     public String registerUser(String userId, String publicKey) throws SQLException {
         String sql = "INSERT INTO users (user_id, public_key) VALUES (?, ?)";
@@ -145,6 +144,41 @@ public class Database {
             }
         }
     }
+
+
+    public boolean registerFile(UUID fileId, String fileName, String userId, SecretKey fek, String grantedBy) throws SQLException {
+        String sql = "INSERT INTO file_access (file_id, file_name, user_id, encrypted_fek_for_user, granted_by) VALUES (?, ?, ?, ?, ?)";
+        byte[] fekBytes = fek.getEncoded();
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+
+            statement.setString(1, fileId.toString());
+            statement.setString(2, fileName);
+            statement.setString(3, userId.toLowerCase());
+//            statement.setBlob(4, fekBytes);
+            statement.setBytes(4, fekBytes);
+            statement.setString(5, grantedBy.toLowerCase());
+
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected == 1; // True if succeeded
+        }
+    }
+
+
+//    CREATE TABLE file_access (
+//            file_id STRING NOT NULL,
+//            file_name TEXT NOT NULL,
+//            user_id TEXT NOT NULL,
+//            encrypted_fek_for_user BLOB NOT NULL,
+//            granted_by TEXT NOT NULL,
+//            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//            PRIMARY KEY (file_id, user_id),
+//            FOREIGN KEY (user_id) REFERENCES users(user_id),
+//            FOREIGN KEY (granted_by) REFERENCES users(user_id)
+//            );
 
 
     public static void closeDatabaseInstance() {

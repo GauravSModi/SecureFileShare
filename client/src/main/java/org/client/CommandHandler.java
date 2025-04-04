@@ -9,7 +9,6 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,7 +19,7 @@ public class CommandHandler {
         String[] commandArgs = command.split(" ");
 
         if (commandArgs.length == 0) {
-            System.err.println("No arguments provided.");
+            System.out.println("No arguments provided.");
             return;
         }
 
@@ -47,40 +46,49 @@ public class CommandHandler {
                 Main.cont = false;
                 return;
             default:
-                System.err.println("Incorrect command.");
+                System.out.println("Incorrect command.");
         }
     }
 
     private static void uploadFile(String[] commandArgs) {
         if (commandArgs.length != 2 && !commandArgs[1].isEmpty()) {
-            System.err.println("Incorrect number of arguments provided. Please seek help.");
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
             return;
         }
 
         // Make sure user is "logged in"
         if (!KeyManager.getInstance().checkUserLoggedIn()) {
-            System.err.println("Please log in first with your key.");
+            System.out.println("Please log in first with your key.");
             return;
         }
 
+        String userId = KeyManager.getInstance().getUser();
+
         String fileName = commandArgs[1];
         File f = new File(fileName);
+
         if (!f.exists()) {
-            System.err.println("No such file. Please make sure file name and path are correct.");
+            System.out.println("No such file. Please make sure file name and path are correct.");
             return;
         }
         if (!f.isFile()) {
-            System.err.println("No folders, only files.");
+            System.out.println("No folders, only files.");
             return;
         }
 
         // Create UUID
-        UUID fileUUID = EncryptionUtil.generateUUID();
+        UUID fileId = EncryptionUtil.generateUUID();
 
         // Send keystore a request to generate encryption keys, and store the file name/uuid
-
+        try {
+            String fek = Networking.generateFileEncryptionKey(fileId, fileName, userId);
+        } catch (IOException e) {
+            System.out.println("Error with keystore while generating fek: " + e.getMessage());
+            return;
+        }
 
         // Encrypt the file using the given keys
+
 
         // Send the encrypted file to datastore
     }
@@ -95,12 +103,12 @@ public class CommandHandler {
 
     private static void registerUser(String[] commandArgs) {
         if (commandArgs.length != 2 && !commandArgs[1].isEmpty()) {
-            System.err.println("Incorrect number of arguments provided. Please seek help.");
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
             return;
         }
 
         if (!commandArgs[1].matches("^[a-zA-Z0-9]+$")) {
-            System.err.println("Username can only contain alphanumeric characters.");
+            System.out.println("Username can only contain alphanumeric characters.");
             return;
         }
 
@@ -120,7 +128,7 @@ public class CommandHandler {
                 return;
             }
         } catch (IOException e) {
-            System.err.println("Error checking if user already exists while registering user: " + e.getMessage());
+            System.out.println("Error checking if user already exists while registering user: " + e.getMessage());
             return;
         }
 
@@ -133,7 +141,7 @@ public class CommandHandler {
             publicKey = keys[0];
             privateKey = keys[1];
         } catch (NoSuchAlgorithmException | IOException e) {
-            System.err.println("Error creating RSA key pair while registering user: " + e.getMessage());
+            System.out.println("Error creating RSA key pair while registering user: " + e.getMessage());
             return;
         }
 
@@ -149,7 +157,7 @@ public class CommandHandler {
                     return;
                 }
             } catch (Exception e) {
-                System.err.println("Error registering user: " + e.getMessage());
+                System.out.println("Error registering user: " + e.getMessage());
                 return;
             }
         }
@@ -157,18 +165,18 @@ public class CommandHandler {
 
     private static void loginUser(String[] commandArgs) {
         if (commandArgs.length != 2 && !commandArgs[1].isEmpty()) {
-            System.err.println("Incorrect number of arguments provided. Please seek help.");
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
             return;
         }
 
         if (!commandArgs[1].matches("^[a-zA-Z0-9]+$")) {
-            System.err.println("Username can only contain alphanumeric characters, so that username's obviously incorrect. Please seek help.");
+            System.out.println("Username can only contain alphanumeric characters, so that username's obviously incorrect. Please seek help.");
             return;
         }
 
         // TODO: Can also have a different message for when the same user is logged in
         if (KeyManager.getInstance().checkUserLoggedIn()) {
-            System.err.println("A user is already logged in. Please log out first.");
+            System.out.println("A user is already logged in. Please log out first.");
             return;
         }
 
@@ -184,7 +192,7 @@ public class CommandHandler {
         Path privateKeyPath = Paths.get("./" + userId + "_private_key.pem");
 
         if (!Files.exists(privateKeyPath) || !Files.isRegularFile(privateKeyPath)) {
-            System.err.println("Couldn't find the private key associated with your user.");
+            System.out.println("Couldn't find the private key associated with your user.");
             return;
         }
 
@@ -212,7 +220,7 @@ public class CommandHandler {
             }
 
         } catch (Exception e) {
-            System.err.println("Had trouble getting public key from keystore: " + e.getMessage());
+            System.out.println("Had trouble getting public key from keystore: " + e.getMessage());
             return;
         }
 
@@ -224,7 +232,7 @@ public class CommandHandler {
             publicKey = KeyManager.parsePublicKey(userPublicKey);
             privateKey = KeyManager.parsePrivateKey(userPrivateKey);
         } catch (GeneralSecurityException e) {
-            System.err.println("Trouble parsing keys while logging in user: " + e.getMessage());
+            System.out.println("Trouble parsing keys while logging in user: " + e.getMessage());
             return;
         }
 

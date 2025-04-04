@@ -3,6 +3,7 @@ package org.client;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class Networking {
     private static int KEYSTORE_PORT = 13131;
@@ -28,6 +29,10 @@ public class Networking {
         } else {
             throw new Exception(res);
         }
+    }
+
+    public static String generateFileEncryptionKey(UUID fileId, String fileName, String userId) throws IOException {
+        return sendMessageToKeystore("generateFek " + fileId.toString() + " " + fileName + " " + userId);
     }
 
     private static String sendMessageToKeystore(String message) throws IOException {

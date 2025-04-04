@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -21,6 +22,8 @@ public class Main {
                 Scanner scanner = new Scanner(System.in);
         ) {
             while (cont) {
+//                TimeUnit.MILLISECONDS.sleep(50);
+                System.err.flush();
                 System.out.print("Please enter command: ");
                 String command = scanner.nextLine();
 

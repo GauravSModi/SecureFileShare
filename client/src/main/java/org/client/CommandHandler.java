@@ -1,8 +1,5 @@
 package org.client;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
@@ -120,13 +117,23 @@ public class CommandHandler {
 
         // Encrypt the content using the given key
         try {
-            EncryptionUtil.encryptFile(content, fek, encryptedFileName);
+            EncryptionUtil.encryptContent(content, fek, encryptedFileName);
         } catch (Exception e) {
             System.out.println("Something went wrong while encrypting file content: " + e.getMessage());
             return;
         }
 
         // Send the encrypted file to datastore
+
+        // TODO: Send file to datastore, then implement decryption (or vice versa)
+
+
+
+//        try {
+//            byte[] decryptedBytes = EncryptionUtil.readEncryptedFile(encryptedFileName, fek);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
 
     }
 

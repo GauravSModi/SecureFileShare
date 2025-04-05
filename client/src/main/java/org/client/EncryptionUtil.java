@@ -4,11 +4,10 @@ import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class EncryptionUtil {
@@ -46,7 +45,7 @@ public class EncryptionUtil {
         return new SecretKeySpec(decryptedKeyBytes, "AES");
     }
 
-    public static void encryptFile(byte[] content, SecretKey fek, String encryptedFileName) throws Exception {
+    public static void encryptContent(byte[] content, SecretKey fek, String encryptedFileName) throws Exception {
         Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
 
         byte[] iv = new byte[12];
@@ -55,20 +54,38 @@ public class EncryptionUtil {
         aesCipher.init(Cipher.ENCRYPT_MODE, fek, spec);
         byte[] encryptedFileContent = aesCipher.doFinal(content);
 
-        writeEncryptedFile(encryptedFileContent, aesCipher, encryptedFileName);
+        writeEncryptedContentToFile(encryptedFileContent, aesCipher, encryptedFileName);
     }
-    public static void writeEncryptedFile(byte[] encryptedFile, Cipher cipher, String outputPath) throws Exception {
+
+    public static byte[] readEncryptedFile(String inputPath, SecretKey key) throws Exception {
+        byte[] fileContent = Files.readAllBytes(Paths.get(inputPath));
+
+        // Extract IV (first 12 bytes)
+        byte[] iv = Arrays.copyOfRange(fileContent, 0, 12);
+
+        // The rest is (encrypted data + tag)
+        byte[] encryptedWithTag = Arrays.copyOfRange(fileContent, 12, fileContent.length);
+
+        // Initialize cipher for decryption
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+
+        // Decrypt (automatically verifies the tag)
+        return cipher.doFinal(encryptedWithTag);
+    }
+
+
+
+    public static void writeEncryptedContentToFile(byte[] content, Cipher cipher, String outputPath) throws Exception {
         // Extract IV and tag from the cipher (GCM-specific)
         byte[] iv = cipher.getIV(); // 12 bytes
 
-        // Combine IV + encrypted data + tag into a single byte array
+        // Combine IV + encrypted data (including tag)
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         outputStream.write(iv);          // Write IV (12 bytes)
-        outputStream.write(encryptedFile); // Write encrypted data
+        outputStream.write(content);     // Write encrypted data
 
-//        System.out.println(outputStream.size());
-
-        // Write to disk
+        // Write to file
         Files.write(Paths.get(outputPath), outputStream.toByteArray());
     }
 }

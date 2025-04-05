@@ -168,8 +168,7 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-
-        // Create input buffer to get user command
+        // Create input/output buffer to get and return user command
         try (
                 InputStream in = clientSocket.getInputStream();
                 OutputStream out = clientSocket.getOutputStream();

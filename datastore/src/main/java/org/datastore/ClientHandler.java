@@ -17,8 +17,17 @@ public class ClientHandler implements Runnable{
         String[] commandArgs = command.split(" ");
         String method = commandArgs[0];
 
-        switch (method.toLowerCase()) {
+//        System.out.println(command);
 
+        switch (method.toLowerCase()) {
+            case "store":
+                // store <fileId> <fileName> <userId> <fileContent>
+                // TODO: how to store file and file metadata together?
+                if (commandArgs.length != 5) {
+                    return "Error: Incorrect number of arguments provided. Could not store file.\n";
+                }
+                storeFile(commandArgs);
+                return "\n";
 
             case "stop":
                 Main.cont = false;
@@ -30,6 +39,10 @@ public class ClientHandler implements Runnable{
         }
     }
 
+    private void storeFile(String[] commandArgs) {
+        // fileId, fileName, userId
+    }
+
     @Override
     public void run() {
         // Create input buffer to get user command
@@ -39,8 +52,6 @@ public class ClientHandler implements Runnable{
         ) {
             // Get user command
             String command = new BufferedReader(new InputStreamReader(in)).readLine();
-
-            System.out.println(command);
 
             // Reply to user
             String response = handleCommand(command);

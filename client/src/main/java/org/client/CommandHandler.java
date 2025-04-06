@@ -93,6 +93,8 @@ public class CommandHandler {
             return;
         }
 
+        // TODO: If anything fails after this point, have to notify keystore and delete file access entry
+
         // Decrypt the received fek and cast to SecretKey
         try {
             fek = EncryptionUtil.decryptFEK(
@@ -115,26 +117,31 @@ public class CommandHandler {
             return;
         }
 
+        byte[] encryptedContent = null;
+
         // Encrypt the content using the given key
         try {
-            EncryptionUtil.encryptContent(content, fek, encryptedFileName);
+            encryptedContent = EncryptionUtil.encryptContent(content, fek, encryptedFileName);
         } catch (Exception e) {
             System.out.println("Something went wrong while encrypting file content: " + e.getMessage());
             return;
         }
 
         // Send the encrypted file to datastore
-        Networking.sendEncryptedFileToDatastore();
-        // TODO: Send file to datastore, then implement decryption (or vice versa)
+        try {
+            Networking.sendEncryptedFileToDatastore(encryptedContent);
+        } catch (IOException e) {
+            System.out.println("Something went wrong while sending encrypted file content to datastore: " + e.getMessage());
+            return;
+        }
 
 
+        String temp = Base64.getEncoder().encodeToString(encryptedContent);
+        byte[] temp2 = Base64.getDecoder().decode(temp);
 
-//        try {
-//            byte[] decryptedBytes = EncryptionUtil.readEncryptedFile(encryptedFileName, fek);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-
+        if (Arrays.equals(temp2, encryptedContent)) {
+            System.out.println("It workS!");
+        }
     }
 
     private static void checkUserLoggedIn() {

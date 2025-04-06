@@ -5,6 +5,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
 
+/*
+    CREATE TABLE files (
+        file_id STRING PRIMARY KEY,
+        file_name TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (user_id, file_name)
+    );
+*/
+
 public class Database {
 
     private static Database instance;

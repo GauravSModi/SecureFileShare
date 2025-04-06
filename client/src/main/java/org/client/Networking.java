@@ -2,6 +2,7 @@ package org.client;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Base64;
 import java.util.UUID;
 
 public class Networking {
@@ -34,8 +35,9 @@ public class Networking {
         return sendMessage("generateFek " + fileId.toString() + " " + fileName + " " + userId, KEYSTORE_PORT);
     }
 
-    public static String sendEncryptedFileToDatastore() {
-
+    public static String sendEncryptedFileToDatastore(byte[] encryptedContentByteArray) throws IOException {
+        String encryptedContentString = Base64.getEncoder().encodeToString(encryptedContentByteArray);
+        return sendMessage(encryptedContentString, DATASTORE_PORT);
     }
 
 

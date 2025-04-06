@@ -2,7 +2,6 @@ package org.client;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class Networking {
@@ -10,11 +9,11 @@ public class Networking {
     private static int DATASTORE_PORT = 31313;
 
     public static boolean checkUserExists(String userId) throws IOException {
-        return sendMessageToKeystore("CheckUserExists " + userId).equalsIgnoreCase("user exists");
+        return sendMessage("CheckUserExists " + userId, KEYSTORE_PORT).equalsIgnoreCase("user exists");
     }
 
     public static String getUserPublicKey(String userId) throws IOException {
-        String flattenedPublicKey = sendMessageToKeystore("getUserPublicKey " + userId);
+        String flattenedPublicKey = sendMessage("getUserPublicKey " + userId, KEYSTORE_PORT);
         String publicKey = flattenedPublicKey.replace("[newline]", "\n");
         return publicKey;
     }
@@ -23,7 +22,7 @@ public class Networking {
 
         String flattenedPublicKey = publicKey.replace("\n", "[newline]");
 
-        String res = sendMessageToKeystore("Register " + userId + " " + flattenedPublicKey);
+        String res = sendMessage("Register " + userId + " " + flattenedPublicKey, KEYSTORE_PORT);
         if (res != null && res.equalsIgnoreCase("success")) {
             return true;
         } else {
@@ -32,13 +31,18 @@ public class Networking {
     }
 
     public static String generateFileEncryptionKey(UUID fileId, String fileName, String userId) throws IOException {
-        return sendMessageToKeystore("generateFek " + fileId.toString() + " " + fileName + " " + userId);
+        return sendMessage("generateFek " + fileId.toString() + " " + fileName + " " + userId, KEYSTORE_PORT);
     }
 
-    private static String sendMessageToKeystore(String message) throws IOException {
+    public static String sendEncryptedFileToDatastore() {
+
+    }
+
+
+    private static String sendMessage(String message, int port) throws IOException {
 
         try (
-                Socket sock = new Socket("localhost", KEYSTORE_PORT);
+                Socket sock = new Socket("localhost", port);
         ) {
             // Create buffer to get reply
             BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -50,5 +54,4 @@ public class Networking {
             return in.readLine();
         }
     }
-
 }

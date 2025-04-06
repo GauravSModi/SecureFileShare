@@ -124,7 +124,7 @@ public class CommandHandler {
         }
 
         // Send the encrypted file to datastore
-
+        Networking.sendEncryptedFileToDatastore();
         // TODO: Send file to datastore, then implement decryption (or vice versa)
 
 

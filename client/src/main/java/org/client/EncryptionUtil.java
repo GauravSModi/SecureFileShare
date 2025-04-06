@@ -45,16 +45,36 @@ public class EncryptionUtil {
         return new SecretKeySpec(decryptedKeyBytes, "AES");
     }
 
-    public static void encryptContent(byte[] content, SecretKey fek, String encryptedFileName) throws Exception {
+    public static byte[] encryptContent(byte[] content, SecretKey fek, String encryptedFileName) throws Exception {
         Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
 
         byte[] iv = new byte[12];
         new SecureRandom().nextBytes(iv);
         GCMParameterSpec spec = new GCMParameterSpec(128, iv);
         aesCipher.init(Cipher.ENCRYPT_MODE, fek, spec);
-        byte[] encryptedFileContent = aesCipher.doFinal(content);
+//        byte[] encryptedFileContent = aesCipher.doFinal(content);
 
-        writeEncryptedContentToFile(encryptedFileContent, aesCipher, encryptedFileName);
+        ByteArrayOutputStream encryptedFileOutputStream = new ByteArrayOutputStream();
+        encryptedFileOutputStream.write(aesCipher.getIV());
+        encryptedFileOutputStream.write(aesCipher.doFinal(content));
+
+        byte[] encryptedFileContent = encryptedFileOutputStream.toByteArray();
+
+//        writeEncryptedContentToFile(encryptedFileContent, aesCipher, encryptedFileName);
+        return encryptedFileContent;
+    }
+
+    public static void writeEncryptedContentToFile(byte[] content, Cipher cipher, String outputPath) throws Exception {
+        // Extract IV and tag from the cipher (GCM-specific)
+        byte[] iv = cipher.getIV(); // 12 bytes
+
+        // Combine IV + encrypted data (including tag)
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        outputStream.write(iv);          // Write IV (12 bytes)
+        outputStream.write(content);     // Write encrypted data
+
+        // Write to file
+        Files.write(Paths.get(outputPath), outputStream.toByteArray());
     }
 
     public static byte[] readEncryptedFile(String inputPath, SecretKey key) throws Exception {
@@ -72,20 +92,5 @@ public class EncryptionUtil {
 
         // Decrypt (automatically verifies the tag)
         return cipher.doFinal(encryptedWithTag);
-    }
-
-
-
-    public static void writeEncryptedContentToFile(byte[] content, Cipher cipher, String outputPath) throws Exception {
-        // Extract IV and tag from the cipher (GCM-specific)
-        byte[] iv = cipher.getIV(); // 12 bytes
-
-        // Combine IV + encrypted data (including tag)
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        outputStream.write(iv);          // Write IV (12 bytes)
-        outputStream.write(content);     // Write encrypted data
-
-        // Write to file
-        Files.write(Paths.get(outputPath), outputStream.toByteArray());
     }
 }

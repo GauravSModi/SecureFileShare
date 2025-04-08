@@ -111,6 +111,11 @@ public class ClientHandler implements Runnable {
     }
 
     private String checkUserExists(String userId) {
+
+        if (Database.getInstance() == null) {
+            return "Error with keystore database.";
+        }
+
         try {
             if (Database.getInstance().checkUserExists(userId.toLowerCase())) {
                 return "user exists\n";
@@ -151,6 +156,11 @@ public class ClientHandler implements Runnable {
         String flattenedPublicKey = null;
 
         try {
+
+            if (Database.getInstance() == null) {
+                return "Error with keystore database.";
+            }
+
             String publicKey = Database.getInstance().getUserPublicKey(userId);
 
             flattenedPublicKey = publicKey.replace("\n", "[newline]");

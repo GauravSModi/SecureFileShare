@@ -61,17 +61,10 @@ public class KeyManager {
         this.privateKey = privateKey;
     }
 
-    // Todo: Implement
-    public boolean loginUser(String userId) {
-
-        return false;
-    }
-
     public void logoutUser() {
         this.userId = null;
         this.privateKey = null;
     }
-
 
     public String[] createRSAKeyPair(String userId) throws NoSuchAlgorithmException, IOException {
         // Make sure there's not already a privatekey

@@ -2,14 +2,16 @@ package org.datastore;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 
 /*
-    CREATE TABLE files (
+    CREATE TABLE file_metadata (
         file_id STRING PRIMARY KEY,
         file_name TEXT NOT NULL,
         user_id TEXT NOT NULL,
+        hmac BLOB NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (user_id, file_name)
     );
@@ -58,6 +60,28 @@ public class Database {
 
     public Connection getConnection() {
         return conn;
+    }
+
+
+    public void storeFileMetadata(String fileId, String fileName, String userId, byte[] hmac) throws SQLException {
+        String sql = "INSERT INTO file_metadata " +
+                "(file_id, file_name, user_id, hmac)" +
+                "VALUES (?, ?, ?, ?)";
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+            statement.setString(1, fileId);
+            statement.setString(2, fileName);
+            statement.setString(3, userId);
+            statement.setBytes(4, hmac);
+
+            int rowsUpdated = statement.executeUpdate();
+
+//            if (rowsUpdated != 1) {
+//                throw new Exception("Error");
+//            }
+        }
     }
 
 

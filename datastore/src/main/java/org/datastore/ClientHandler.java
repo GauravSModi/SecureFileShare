@@ -3,8 +3,10 @@ package org.datastore;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.util.Base64;
 
-public class ClientHandler implements Runnable{
+public class ClientHandler implements Runnable {
     private final ServerSocket serverSocket;
     private final Socket clientSocket;
 
@@ -17,17 +19,16 @@ public class ClientHandler implements Runnable{
         String[] commandArgs = command.split(" ");
         String method = commandArgs[0];
 
-//        System.out.println(command);
+        System.out.println(command);
 
         switch (method.toLowerCase()) {
             case "store":
-                // store <fileId> <fileName> <userId> <fileContent>
-                // TODO: how to store file and file metadata together?
-                if (commandArgs.length != 5) {
+                // store <fileId> <fileName> <userId> <hmac> <fileContent>
+                // TODO: Store file in filesystem and file metadata in sqlite db
+                if (commandArgs.length != 6) {
                     return "Error: Incorrect number of arguments provided. Could not store file.\n";
                 }
-                storeFile(commandArgs);
-                return "\n";
+                return storeFile(commandArgs);
 
             case "stop":
                 Main.cont = false;
@@ -39,8 +40,31 @@ public class ClientHandler implements Runnable{
         }
     }
 
-    private void storeFile(String[] commandArgs) {
+    private String storeFile(String[] commandArgs) {
         // fileId, fileName, userId
+        String fileId = commandArgs[1];
+        String fileName = commandArgs[2];
+        String userId = commandArgs[3];
+        byte[] hmac = Base64.getDecoder().decode(commandArgs[4]);
+        byte[] encryptedFileContent = Base64.getDecoder().decode(commandArgs[5]);
+
+        if (Database.getInstance() == null) {
+            return "Error with datastore database.";
+        }
+
+        try {
+            Database.getInstance().storeFileMetadata(fileId, fileName, userId, hmac);
+
+            // Create a file in the "file system" (just local for now)
+            FileUtil.saveEncryptedFile(userId, fileName, encryptedFileContent);
+
+            return "Success";
+        } catch (Exception e) {
+            // TODO: Rollback any changes that were made
+            System.err.println(e.getMessage());
+            // e.getErrorCode() == 19 should be primary/unique constraint failed i think?
+            return "error: " + e.getMessage();
+        }
     }
 
     @Override

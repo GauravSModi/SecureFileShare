@@ -13,21 +13,13 @@ import java.util.UUID;
             file_access
 
         datastore tables:
-            files
-
+            file_metadata
+            (and the filesystem)
 
             CREATE TABLE users (
                 user_id TEXT PRIMARY KEY,
                 public_key TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-
-            CREATE TABLE files (
-                file_id STRING PRIMARY KEY,
-                file_name TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE (user_id, file_name)
             );
 
             CREATE TABLE file_access (
@@ -40,6 +32,15 @@ import java.util.UUID;
                 PRIMARY KEY (file_id, user_id),
                 FOREIGN KEY (user_id) REFERENCES users(user_id),
                 FOREIGN KEY (granted_by) REFERENCES users(user_id)
+            );
+
+            CREATE TABLE file_metadata (
+                file_id STRING PRIMARY KEY,
+                file_name TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                hmac BLOB NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (user_id, file_name)
             );
 
     */

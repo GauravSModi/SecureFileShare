@@ -35,9 +35,24 @@ public class Networking {
         return sendMessage("generateFek " + fileId.toString() + " " + fileName + " " + userId, KEYSTORE_PORT);
     }
 
-    public static String sendEncryptedFileToDatastore(byte[] encryptedContentByteArray) throws IOException {
+    public static String sendEncryptedFileToDatastore(UUID fileId,
+                                                      String fileName,
+                                                      String userId,
+                                                      byte[] hmac,
+                                                      byte[] encryptedContentByteArray
+    ) throws IOException {
+        // store <fileId> <fileName> <userId> <hmac> <fileContent>
+        String hmacString = Base64.getEncoder().encodeToString(hmac);
         String encryptedContentString = Base64.getEncoder().encodeToString(encryptedContentByteArray);
-        return sendMessage(encryptedContentString, DATASTORE_PORT);
+
+        String messageString = "store " +
+                fileId.toString() + " " +
+                fileName + " " +
+                userId + " " +
+                hmacString + " " +
+                encryptedContentString;
+
+        return sendMessage(messageString, DATASTORE_PORT);
     }
 
 

@@ -55,6 +55,9 @@ public class EncryptionUtil {
 //        byte[] encryptedFileContent = aesCipher.doFinal(content);
 
         ByteArrayOutputStream encryptedFileOutputStream = new ByteArrayOutputStream();
+
+        // TODO: Technically I shouldn't write IV to file and instead store it
+        //       separately with the metadata to make rotating keys easier.
         encryptedFileOutputStream.write(aesCipher.getIV());
         encryptedFileOutputStream.write(aesCipher.doFinal(content));
 
@@ -92,5 +95,12 @@ public class EncryptionUtil {
 
         // Decrypt (automatically verifies the tag)
         return cipher.doFinal(encryptedWithTag);
+    }
+
+    public static byte[] generateHmac(SecretKey fek, byte[] encryptedFile) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKeySpec hmacKey = new SecretKeySpec(fek.getEncoded(), "HmacSHA256");
+        Mac hmac = Mac.getInstance("HmacSHA256");
+        hmac.init(hmacKey);
+        return hmac.doFinal(encryptedFile);
     }
 }

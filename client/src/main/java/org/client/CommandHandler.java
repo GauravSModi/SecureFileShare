@@ -127,10 +127,23 @@ public class CommandHandler {
             return;
         }
 
+        // Generate the hmac using the FEK
+        byte[] hmac = null;
+
+        try {
+            hmac = EncryptionUtil.generateHmac(fek, encryptedContent);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            System.out.println("Something went wrong while generating Hmac for encrypted file: " + e.getMessage());
+            return;
+        }
+
         // Send the encrypted file to datastore
         try {
-            Networking.sendEncryptedFileToDatastore(encryptedContent);
-        } catch (IOException e) {
+            String status = Networking.sendEncryptedFileToDatastore(fileId, fileName, userId, hmac, encryptedContent);
+            if (status.toLowerCase().contains("error")) {
+                throw new Exception(status);
+            }
+        } catch (Exception e) {
             System.out.println("Something went wrong while sending encrypted file content to datastore: " + e.getMessage());
             return;
         }
@@ -309,7 +322,7 @@ public class CommandHandler {
         System.out.println("    login <userId>                  - Login as an existing user");
         System.out.println("    logout                          - Logout current user");
         System.out.println("    user                            - Check current login status");
-//        System.out.println("    upload <filePath>               - Upload and encrypt a file");
+        System.out.println("    upload <filePath>               - Upload and encrypt a file");
 //        System.out.println("    download <fileId>               - Download and decrypt a file");
 //        System.out.println("    share <fileId> <userId>         - Share file with another user");
 //        System.out.println("    revoke <fileId> <userId>        - Revoke file access from user");

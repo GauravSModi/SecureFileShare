@@ -14,5 +14,5 @@ A CLI-based system for secure file sharing, featuring AES-256-GCM encryption, RS
 ## Tech Stack
 - **Language**: Java 17
 - **Encryption**: `AES-256-GCM` (files), `RSA-OAEP` (keys), `HMAC-SHA256` (integrity)
-- **Database**: SQLite (Keystore + Datastore)
+- **Database**: SQLite (Keystore + Datastore) & file system (Datastore)
 - **Networking**: Java Sockets (TCP)

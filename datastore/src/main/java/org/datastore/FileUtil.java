@@ -1,8 +1,6 @@
 package org.datastore;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +10,7 @@ public class FileUtil {
         return fileName.replaceAll("[.]", "_") + ".enc";
     }
 
-    public static void saveEncryptedFile(String userId, String fileName, byte[] encryptedFileContent) throws IOException {
+    public static void saveFile(String userId, String fileName, byte[] encryptedFileContent) throws IOException {
 //        ByteArrayOutputStream out = new ByteArrayOutputStream();
 //        out.write(encryptedFileContent);
 
@@ -27,7 +25,7 @@ public class FileUtil {
         Files.write(path, encryptedFileContent);
     }
 
-    public static byte[] readEncryptedFile(String userId, String fileName) throws Exception {
+    public static byte[] readFile(String userId, String fileName) throws Exception {
         byte[] fileContent = null;
         Path dir = Paths.get("encrypted_files/" + userId);
         if (!Files.exists(dir) || !Files.isDirectory(dir)) {

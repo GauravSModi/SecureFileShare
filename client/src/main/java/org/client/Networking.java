@@ -55,6 +55,12 @@ public class Networking {
         return sendMessage(messageString, DATASTORE_PORT);
     }
 
+    public static String getEncryptedFek(String fileName, String userId) throws IOException {
+        String messageString = "retrievefek " + fileName + " " + userId;
+
+        return sendMessage(messageString, KEYSTORE_PORT);
+    }
+
 
     private static String sendMessage(String message, int port) throws IOException {
 

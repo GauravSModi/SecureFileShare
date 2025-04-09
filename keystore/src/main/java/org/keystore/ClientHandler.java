@@ -28,6 +28,11 @@ public class ClientHandler implements Runnable {
         String method = commandArgs[0];
 
         switch (method.toLowerCase()) {
+            case "retrievefek":
+                if (commandArgs.length != 3) {
+                    return "Incorrect number of arguments provided. Could not generate FEK.\n";
+                }
+                return retrieveFek(commandArgs);
             case "generatefek":
                 if (commandArgs.length != 4) {
                     return "Incorrect number of arguments provided. Could not generate FEK.\n";
@@ -59,6 +64,25 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private String retrieveFek(String[] commandArgs) {
+        String fileName = commandArgs[1];
+        String userId = commandArgs[2];
+
+        if (Database.getInstance() == null) {
+            return "Error with keystore database.";
+        }
+
+        byte[] fek = null;
+
+        try {
+            fek = Database.getInstance().getFek(userId, fileName);
+
+            return Base64.getEncoder().encodeToString(fek);
+        } catch (SQLException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
     private String generateFek(String[] commandArgs) {
 
         UUID fileId = UUID.fromString(commandArgs[1]);
@@ -84,13 +108,13 @@ public class ClientHandler implements Runnable {
         try {
             userPublicKey = KeyManager.parsePublicKey(Database.getInstance().getUserPublicKey(userId));
         } catch (Exception e) {
-            return "Error getting user public key.";
+            return "Error getting user public key: " + e.getMessage();
         }
 
         try {
             encryptedFek = KeyManager.encryptFEK(fek, userPublicKey);
         } catch (Exception e) {
-            return "Error encrypting FEK.";
+            return "Error encrypting FEK: " + e.getMessage();
         }
 
         // Register the file into the db
@@ -101,8 +125,8 @@ public class ClientHandler implements Runnable {
                 System.err.println("Database error: File already exists");
                 return "Error File already exists.";
             } else {
-                System.err.println("Database error: " + e.getMessage());
-                return "Error registering the file into keystore.";
+//                System.err.println("Database error: " + e.getMessage());
+                return "Error registering the file into keystore: " + e.getMessage();
             }
         }
 
@@ -170,7 +194,7 @@ public class ClientHandler implements Runnable {
 //                    + Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded())
 //                    + "\n-----END PUBLIC KEY-----\n";
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return "Error: " + e.getMessage();
         }
 
         return flattenedPublicKey;

@@ -27,6 +27,9 @@ public class CommandHandler {
             case "upload":
                 uploadFile(commandArgs);
                 return;
+            case "download":
+                downloadFile(commandArgs);
+                return;
             case "user":
                 checkUserLoggedIn();
                 return;
@@ -50,8 +53,13 @@ public class CommandHandler {
         }
     }
 
-    private static void uploadFile(String[] commandArgs) {
-        if (commandArgs.length != 2 && !commandArgs[1].isEmpty()) {
+    private static void downloadFile(String[] commandArgs) {
+        if (commandArgs.length != 2) {
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
+            return;
+        }
+
+        if (commandArgs[1].isEmpty()) {
             System.out.println("Incorrect number of arguments provided. Please seek help.");
             return;
         }
@@ -62,6 +70,57 @@ public class CommandHandler {
             return;
         }
 
+        String fileName = commandArgs[1];
+        String userId = KeyManager.getInstance().getUser();
+
+        // Check the keystore to make sure file exists and user has permission to access it and
+        // Get the encrypted FEK and decrypt
+        byte[] encryptedFek = null;
+        SecretKey fek = null;
+        try {
+            encryptedFek = Base64.getDecoder().decode(Networking.getEncryptedFek(fileName, userId));
+            fek = EncryptionUtil.decryptFEK(encryptedFek, KeyManager.parsePrivateKey(KeyManager.getInstance().getPrivateKey()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+
+        // Get the file and HMAC from the datastore
+        
+
+
+        // Decrypt the FEK
+
+
+        // Verify the HMAC
+
+
+        // Decrypt the file
+
+
+        // Save the file to user's local filesystem
+
+
+    }
+
+    private static void uploadFile(String[] commandArgs) {
+        if (commandArgs.length != 2) {
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
+            return;
+        }
+
+        if (commandArgs[1].isEmpty()) {
+            System.out.println("Incorrect number of arguments provided. Please seek help.");
+            return;
+        }
+
+        // Make sure user is "logged in"
+        if (!KeyManager.getInstance().checkUserLoggedIn()) {
+            System.out.println("Please log in first with your key.");
+            return;
+        }
+
+        // Get user id
         String userId = KeyManager.getInstance().getUser();
 
         String fileName = commandArgs[1];
@@ -84,6 +143,7 @@ public class CommandHandler {
         // Send keystore a request to generate encryption keys, and store the file name/uuid
         try {
             fekString = Networking.generateFileEncryptionKey(fileId, fileName, userId);
+            System.out.println(fekString);
             if (fekString.toLowerCase().contains("error")){
                 throw new Exception(fekString);
             }
@@ -148,13 +208,7 @@ public class CommandHandler {
             return;
         }
 
-
-        String temp = Base64.getEncoder().encodeToString(encryptedContent);
-        byte[] temp2 = Base64.getDecoder().decode(temp);
-
-        if (Arrays.equals(temp2, encryptedContent)) {
-            System.out.println("It workS!");
-        }
+        System.out.println("Upload complete!");
     }
 
     private static void checkUserLoggedIn() {
@@ -323,7 +377,7 @@ public class CommandHandler {
         System.out.println("    logout                          - Logout current user");
         System.out.println("    user                            - Check current login status");
         System.out.println("    upload <filePath>               - Upload and encrypt a file");
-//        System.out.println("    download <fileId>               - Download and decrypt a file");
+        System.out.println("    download <fileId>               - Download and decrypt a file");
 //        System.out.println("    share <fileId> <userId>         - Share file with another user");
 //        System.out.println("    revoke <fileId> <userId>        - Revoke file access from user");
 //        System.out.println("    list                            - List all accessible files");

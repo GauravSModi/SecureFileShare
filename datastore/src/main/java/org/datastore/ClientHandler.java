@@ -3,7 +3,6 @@ package org.datastore;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.Base64;
 
 public class ClientHandler implements Runnable {
@@ -30,6 +29,13 @@ public class ClientHandler implements Runnable {
                 }
                 return storeFile(commandArgs);
 
+            case "get":
+                // get <fileId> <fileName> <userId>
+                if (commandArgs.length != 2) {
+                    return "Error: Incorrect number of arguments provided. Could not get file.\n";
+                }
+                return getFile(commandArgs);
+
             case "stop":
                 Main.cont = false;
                 serverSocket.close();
@@ -37,6 +43,23 @@ public class ClientHandler implements Runnable {
 
             default:
                 return "Unknown Command";
+        }
+    }
+
+    private String getFile(String[] commandArgs) {
+        String fileId = commandArgs[1];
+        String fileName = commandArgs[2];
+        String userId = commandArgs[3];
+
+        // Do I need to get metadata?
+
+        // Retrieve file
+        try {
+            byte[] encryptedFileContent = FileUtil.readFile(userId, fileName);
+
+            return Base64.getEncoder().encodeToString(encryptedFileContent);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
         }
     }
 
@@ -56,7 +79,7 @@ public class ClientHandler implements Runnable {
             Database.getInstance().storeFileMetadata(fileId, fileName, userId, hmac);
 
             // Create a file in the "file system" (just local for now)
-            FileUtil.saveEncryptedFile(userId, fileName, encryptedFileContent);
+            FileUtil.saveFile(userId, fileName, encryptedFileContent);
 
             return "Success";
         } catch (Exception e) {

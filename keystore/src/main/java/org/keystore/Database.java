@@ -3,6 +3,7 @@ package org.keystore;
 import javax.crypto.SecretKey;
 import javax.xml.crypto.Data;
 import java.sql.*;
+import java.util.Base64;
 import java.util.UUID;
 
 
@@ -146,7 +147,6 @@ public class Database {
         }
     }
 
-
     public void registerFile(UUID fileId, String fileName, String userId, byte[] fek, String grantedBy) throws SQLException {
         String sql = "INSERT INTO file_access (file_id, file_name, user_id, encrypted_fek_for_user, granted_by) VALUES (?, ?, ?, ?, ?)";
 
@@ -161,6 +161,23 @@ public class Database {
             statement.setString(5, grantedBy.toLowerCase());
 
             int rowsAffected = statement.executeUpdate();
+        }
+    }
+
+    public byte[] getFek(String userId, String fileName) throws SQLException {
+        String sql = "SELECT encrypted_fek_for_user FROM file_access WHERE user_id = ? AND file_name = ?";
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+            statement.setString(1, userId);
+            statement.setString(2, fileName);
+
+            try (
+                    ResultSet res = statement.executeQuery()
+            ) {
+                return res.getBytes("encrypted_fek_for_user");
+            }
         }
     }
 

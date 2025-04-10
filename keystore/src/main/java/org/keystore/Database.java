@@ -1,9 +1,8 @@
 package org.keystore;
 
-import javax.crypto.SecretKey;
-import javax.xml.crypto.Data;
+import org.keystore.types.FileIdAndFek;
+
 import java.sql.*;
-import java.util.Base64;
 import java.util.UUID;
 
 
@@ -164,8 +163,8 @@ public class Database {
         }
     }
 
-    public byte[] getFek(String userId, String fileName) throws SQLException {
-        String sql = "SELECT encrypted_fek_for_user FROM file_access WHERE user_id = ? AND file_name = ?";
+    public FileIdAndFek getFileIdAndFek(String userId, String fileName) throws SQLException {
+        String sql = "SELECT file_id, encrypted_fek_for_user FROM file_access WHERE user_id = ? AND file_name = ?";
 
         try (
                 PreparedStatement statement = conn.prepareStatement(sql);
@@ -176,7 +175,9 @@ public class Database {
             try (
                     ResultSet res = statement.executeQuery()
             ) {
-                return res.getBytes("encrypted_fek_for_user");
+                String fileId = res.getString("file_id");
+                byte[] fek = res.getBytes("encrypted_fek_for_user");
+                return new FileIdAndFek(fileId, fek);
             }
         }
     }

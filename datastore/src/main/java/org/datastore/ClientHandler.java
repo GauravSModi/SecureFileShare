@@ -29,12 +29,12 @@ public class ClientHandler implements Runnable {
                 }
                 return storeFile(commandArgs);
 
-            case "get":
-                // get <fileId> <fileName> <userId>
+            case "getfileandhmac":
+                // getfileandhmac <fileId> <fileName> <userId>
                 if (commandArgs.length != 2) {
                     return "Error: Incorrect number of arguments provided. Could not get file.\n";
                 }
-                return getFile(commandArgs);
+                return getFileAndHmac(commandArgs);
 
             case "stop":
                 Main.cont = false;
@@ -46,7 +46,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String getFile(String[] commandArgs) {
+    private String getFileAndHmac(String[] commandArgs) {
         String fileId = commandArgs[1];
         String fileName = commandArgs[2];
         String userId = commandArgs[3];

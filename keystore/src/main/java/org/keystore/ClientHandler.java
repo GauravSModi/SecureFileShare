@@ -1,15 +1,14 @@
 package org.keystore;
 
+import org.keystore.types.FileIdAndFek;
+
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -28,11 +27,11 @@ public class ClientHandler implements Runnable {
         String method = commandArgs[0];
 
         switch (method.toLowerCase()) {
-            case "retrievefek":
+            case "retrievefileidandfek":
                 if (commandArgs.length != 3) {
                     return "Incorrect number of arguments provided. Could not generate FEK.\n";
                 }
-                return retrieveFek(commandArgs);
+                return retrieveFileIdAndFek(commandArgs);
             case "generatefek":
                 if (commandArgs.length != 4) {
                     return "Incorrect number of arguments provided. Could not generate FEK.\n";
@@ -64,7 +63,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String retrieveFek(String[] commandArgs) {
+    private String retrieveFileIdAndFek(String[] commandArgs) {
         String fileName = commandArgs[1];
         String userId = commandArgs[2];
 
@@ -72,12 +71,15 @@ public class ClientHandler implements Runnable {
             return "Error with keystore database.";
         }
 
+        String fileId = null;
         byte[] fek = null;
 
         try {
-            fek = Database.getInstance().getFek(userId, fileName);
+            FileIdAndFek ff = Database.getInstance().getFileIdAndFek(userId, fileName);
+            fileId = ff.getFileId();
+            fek = ff.getFek();
 
-            return Base64.getEncoder().encodeToString(fek);
+            return fileId + "<fileId&fek>" + Base64.getEncoder().encodeToString(fek);
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }

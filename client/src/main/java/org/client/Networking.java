@@ -55,12 +55,17 @@ public class Networking {
         return sendMessage(messageString, DATASTORE_PORT);
     }
 
-    public static String getEncryptedFek(String fileName, String userId) throws IOException {
-        String messageString = "retrievefek " + fileName + " " + userId;
+    public static String getFileIdAndEncryptedFek(String fileName, String userId) throws IOException {
+        String messageString = "retrievefileidandfek " + fileName + " " + userId;
 
         return sendMessage(messageString, KEYSTORE_PORT);
     }
 
+    public static String getFileAndHmac(String fileName, String userId) throws IOException {
+        String messageString = "getfileandhmac " + fileName + userId;
+
+        return sendMessage(messageString, DATASTORE_PORT);
+    }
 
     private static String sendMessage(String message, int port) throws IOException {
 

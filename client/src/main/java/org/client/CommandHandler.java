@@ -75,10 +75,13 @@ public class CommandHandler {
 
         // Check the keystore to make sure file exists and user has permission to access it and
         // Get the encrypted FEK and decrypt
-        byte[] encryptedFek = null;
+        String fileId = null;
         SecretKey fek = null;
         try {
-            encryptedFek = Base64.getDecoder().decode(Networking.getEncryptedFek(fileName, userId));
+            String res = Networking.getFileIdAndEncryptedFek(fileName, userId);
+            String[] fileIdAndFek = res.split("<fileId&fek>");
+            byte[] encryptedFek = Base64.getDecoder().decode(fileIdAndFek[1]);
+            fileId = fileIdAndFek[0];
             fek = EncryptionUtil.decryptFEK(encryptedFek, KeyManager.parsePrivateKey(KeyManager.getInstance().getPrivateKey()));
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -86,10 +89,15 @@ public class CommandHandler {
         }
 
         // Get the file and HMAC from the datastore
-        
-
-
-        // Decrypt the FEK
+        byte[] encryptedFileContent = null;
+        byte[] hmac = null;
+        try {
+            String[] res = Networking.getFileAndHmac(fileName, userId).split("<file&hmac>");
+            encryptedFileContent = Base64.getDecoder().decode(res[0]);
+            hmac = Base64.getDecoder().decode(res[1]);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
 
         // Verify the HMAC

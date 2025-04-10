@@ -1,9 +1,7 @@
 package org.datastore;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Base64;
 import java.util.UUID;
 
 /*
@@ -81,6 +79,23 @@ public class Database {
 //            if (rowsUpdated != 1) {
 //                throw new Exception("Error");
 //            }
+        }
+    }
+
+    public byte[] getHmac(String fileId, String userId) throws SQLException {
+        String sql = "Select hmac FROM file_metadata WHERE file_id = ? AND user_id = ?";
+
+        try (
+                PreparedStatement statement = conn.prepareStatement(sql);
+        ) {
+            statement.setString(1, fileId);
+            statement.setString(2, userId);
+
+            try (
+                    ResultSet res = statement.executeQuery();
+            ) {
+                return res.getBytes("hmac");
+            }
         }
     }
 

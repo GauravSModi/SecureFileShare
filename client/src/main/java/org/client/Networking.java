@@ -61,8 +61,8 @@ public class Networking {
         return sendMessage(messageString, KEYSTORE_PORT);
     }
 
-    public static String getFileAndHmac(String fileName, String userId) throws IOException {
-        String messageString = "getfileandhmac " + fileName + userId;
+    public static String getHmacAndFile(String fileId, String fileName, String userId) throws IOException {
+        String messageString = "gethmacandfile " + fileId + " " + fileName + " " + userId;
 
         return sendMessage(messageString, DATASTORE_PORT);
     }

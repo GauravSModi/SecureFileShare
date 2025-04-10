@@ -92,14 +92,16 @@ public class CommandHandler {
         byte[] encryptedFileContent = null;
         byte[] hmac = null;
         try {
-            String[] res = Networking.getFileAndHmac(fileName, userId).split("<file&hmac>");
-            encryptedFileContent = Base64.getDecoder().decode(res[0]);
-            hmac = Base64.getDecoder().decode(res[1]);
+            String[] res = Networking.getHmacAndFile(fileId, fileName, userId).split("<hmac&file>");
+
+            hmac = Base64.getDecoder().decode(res[0]);
+            encryptedFileContent = Base64.getDecoder().decode(res[1]);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-
+        
         // Verify the HMAC
 
 

@@ -29,12 +29,12 @@ public class ClientHandler implements Runnable {
                 }
                 return storeFile(commandArgs);
 
-            case "getfileandhmac":
-                // getfileandhmac <fileId> <fileName> <userId>
-                if (commandArgs.length != 2) {
+            case "gethmacandfile":
+                // gethmacandfile <fileId> <fileName> <userId>
+                if (commandArgs.length != 4) {
                     return "Error: Incorrect number of arguments provided. Could not get file.\n";
                 }
-                return getFileAndHmac(commandArgs);
+                return getHmacAndFile(commandArgs);
 
             case "stop":
                 Main.cont = false;
@@ -46,7 +46,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private String getFileAndHmac(String[] commandArgs) {
+    private String getHmacAndFile(String[] commandArgs) {
         String fileId = commandArgs[1];
         String fileName = commandArgs[2];
         String userId = commandArgs[3];
@@ -55,9 +55,15 @@ public class ClientHandler implements Runnable {
 
         // Retrieve file
         try {
+            if (Database.getInstance() == null) return "Error: Something went wrong with the datastore database";
+
+            // Get HMAC from db
+            byte[] hmac = Database.getInstance().getHmac(fileId, userId);
+
+            // Read file from filesystem
             byte[] encryptedFileContent = FileUtil.readFile(userId, fileName);
 
-            return Base64.getEncoder().encodeToString(encryptedFileContent);
+            return Base64.getEncoder().encodeToString(hmac) + "<hmac&file>" + Base64.getEncoder().encodeToString(encryptedFileContent);
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }

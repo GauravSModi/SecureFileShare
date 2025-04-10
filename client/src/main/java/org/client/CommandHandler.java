@@ -1,5 +1,8 @@
 package org.client;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
@@ -90,26 +93,36 @@ public class CommandHandler {
 
         // Get the file and HMAC from the datastore
         byte[] encryptedFileContent = null;
-        byte[] hmac = null;
+        byte[] hmacDatastore = null;
         try {
             String[] res = Networking.getHmacAndFile(fileId, fileName, userId).split("<hmac&file>");
 
-            hmac = Base64.getDecoder().decode(res[0]);
+            hmacDatastore = Base64.getDecoder().decode(res[0]);
             encryptedFileContent = Base64.getDecoder().decode(res[1]);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        
-        // Verify the HMAC
 
+        // Verify the HMAC (Generate it again and compare it to the one from datastore)
+        try {
+            byte[] hmacExpected = EncryptionUtil.generateHmac(fek, encryptedFileContent);
+            if (!Arrays.equals(hmacExpected, hmacDatastore)) {
+                System.out.println("Couldn't verify integrity of file. It has possibly been tampered with.");
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Something went wrong when verifying integrity: " + e.getMessage());
+        }
 
-        // Decrypt the file
-
-
-        // Save the file to user's local filesystem
-
+        // Decrypt the file and save the file to user's local filesystem
+        try {
+            EncryptionUtil.decryptContentAndWriteToFile(encryptedFileContent, fek, fileName);
+        } catch (Exception e) {
+            System.out.println("Something went wrong decrypting the content and writing to a local file");
+            return;
+        }
 
     }
 
@@ -154,7 +167,7 @@ public class CommandHandler {
         try {
             fekString = Networking.generateFileEncryptionKey(fileId, fileName, userId);
             System.out.println(fekString);
-            if (fekString.toLowerCase().contains("error")){
+            if (fekString.toLowerCase().contains("error")) {
                 throw new Exception(fekString);
             }
 

@@ -4,6 +4,7 @@ import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
@@ -46,6 +47,13 @@ public class EncryptionUtil {
     }
 
     public static byte[] encryptContent(byte[] content, SecretKey fek, String encryptedFileName) throws Exception {
+        if (content == null || content.length == 0) {
+            throw new IllegalArgumentException("Content cannot be null or empty");
+        }
+        if (fek == null) {
+            throw new IllegalArgumentException("SecretKey cannot be null");
+        }
+
         Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
 
         byte[] iv = new byte[12];
@@ -65,6 +73,22 @@ public class EncryptionUtil {
 
 //        writeEncryptedContentToFile(encryptedFileContent, aesCipher, encryptedFileName);
         return encryptedFileContent;
+    }
+
+    public static void decryptContentAndWriteToFile(byte[] encryptedContentWithIV, SecretKey fek, String fileName)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException,
+            InvalidAlgorithmParameterException, InvalidKeyException, IOException {
+        // iv should be the first 12 bytes, so get it...
+        byte[] iv = Arrays.copyOfRange(encryptedContentWithIV, 0, 12); // (indices 0 to 11)
+        byte[] encryptedContent = Arrays.copyOfRange(encryptedContentWithIV, 12, encryptedContentWithIV.length);
+
+        Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+        aesCipher.init(Cipher.DECRYPT_MODE, fek, spec);
+
+        byte[] decryptedContent = aesCipher.doFinal(encryptedContent);
+
+        Files.write(Paths.get(fileName), decryptedContent);
     }
 
     public static void writeEncryptedContentToFile(byte[] content, Cipher cipher, String outputPath) throws Exception {
